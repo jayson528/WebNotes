@@ -2,11 +2,108 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>My Web Page</title>
+        <title>WebNotes</title>
+        <style>
+            #headerBar{
+                background-color: powderblue;
+                margin: 0px;
+            }
+
+            ul {
+                list-style-type: none;
+                margin: 0px 0px 0px 0px;
+                padding: 0px;
+            }
+
+            li {
+                display: inline-block;
+                margin: 0px 20px;
+            }
+
+            li h1 {
+                margin: 5px;
+            }
+
+            li h3 {
+                margin: 5px;
+            }
+
+            #note {
+                border-style: solid;
+                border-width: 1px;
+                font-size: 50px
+            }
+        </style>
     </head>
 
     <body>
-        <!-- This is a comment -->
-        <h1>Hello World!</h1>
+        <div id="headerBar">
+            <ul>
+                <li>
+                    <h1>WebNotes</h1>
+                </li>
+                <li>
+                    <h3 id="alert"> </h3>
+                </li>
+                <li>
+                    <button type="button" onclick="save()">Save</button>
+                </li>
+            </ul>
+        </div>
+        <div id="note" contenteditable>
+
+        </div>
     </body>
+
+    <script src="https://unpkg.com/filer/dist/filer.min.js"></script>
+    <script src="https://unpkg.com/moment"></script>
+    
+    <script>
+
+        // File system object to read and write files
+        const fs = new Filer.FileSystem();
+        
+        // Event listerner for when the document had fully loaded
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // Read from a file named 'myfile.txt'
+            fs.readFile('/myfile.txt', 'utf8', function(err, data) {
+                // File was found and read
+                if(data){
+                    // Set the innerHTML using the data read from the file
+                    document.querySelector('#note').innerHTML = data;
+                    // Get the status of 'myfile.txt' to get last modified time of the file
+                    fs.stat('/myfile.txt', function(err, stats) {
+                        if(err){ return } else {
+                            // Use moment library to format js Date object returned by "stats.mtime"
+                            let lastModifiedTimeForFile = moment(stats.mtime).format('MMMM Do YYYY, h:mm:ss a')
+                            // Set the innerHtml to display the last time 
+                            document.querySelector('#alert').innerHTML = "Your notes from: " + lastModifiedTimeForFile
+                        }
+                    });
+                    
+                }
+            })
+        })
+
+        // Set a timer to save work every 10 seconds (10000 miliseconds)
+        window.setInterval(function(){
+           save()
+        },10000)
+
+        function save(){
+             // Save the innerHTML content in a variable
+             let dataToSave = document.querySelector('#note').innerHTML;
+            // Write the date to file 'myfile.txt' and pass in variable as a parameter
+            fs.writeFile('/myfile.txt', dataToSave, function (err) {
+                if(err){
+                    console.log(err)
+                } else {
+                    // If there was no errors while saving, set the innerHTML to reflect the last successfull save point
+                    document.querySelector('#alert').innerHTML = "Last Successful save: " + moment().format('MMMM Do YYYY, h:mm:ss a');
+                }
+            });
+        }
+
+    </script>
+
 </html>
